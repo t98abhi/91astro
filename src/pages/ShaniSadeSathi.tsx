@@ -205,188 +205,316 @@ const ShaniSadeSathi: React.FC = () => {
   //   }
   // };
 
-  const generateShaniSadeReport = async (
-    data: typeof formData
-  ): Promise<JSX.Element> => {
-    try {
-      // const client = new OpenAI({
-      //   apiKey: import.meta.env.VITE_OPENAI_API_KEY, // stored in Vercel
-      // });
+  // const generateShaniSadeReport = async (
+  //   data: typeof formData
+  // ): Promise<JSX.Element> => {
+  //   try {
+  //     // const client = new OpenAI({
+  //     //   apiKey: import.meta.env.VITE_OPENAI_API_KEY, // stored in Vercel
+  //     // });
 
-      const client = new OpenAI({
-            apiKey: import.meta.env.VITE_OPENAI_API_KEY, // replace with your real key or import.meta.env.VITE_OPENAI_API_KEY
-            dangerouslyAllowBrowser: true, // for client-side usage
-          });
+  //     const client = new OpenAI({
+  //           apiKey: import.meta.env.VITE_OPENAI_API_KEY, // replace with your real key or import.meta.env.VITE_OPENAI_API_KEY
+  //           dangerouslyAllowBrowser: true, // for client-side usage
+  //         });
 
-      // Call ChatGPT for real Sade Sati calculation
-      const prompt = `
-      Given the following birth details:
-      Name: ${data.name}
-      Date of Birth: ${data.dateOfBirth}
-      Time of Birth: ${data.timeOfBirth}
-      Place of Birth: ${data.placeOfBirth}
+  //     // Call ChatGPT for real Sade Sati calculation
+  //     const prompt = `
+  //     Given the following birth details:
+  //     Name: ${data.name}
+  //     Date of Birth: ${data.dateOfBirth}
+  //     Time of Birth: ${data.timeOfBirth}
+  //     Place of Birth: ${data.placeOfBirth}
 
-      Determine:
-      1. Whether the person is currently under Shani Sade Sati.
-      2. If yes, the current phase (First, Second, Third).
-      3. Approximate remaining duration in years.
-      4. If not under Sade Sati, approximate years until next occurrence.
+  //     Determine:
+  //     1. Whether the person is currently under Shani Sade Sati.
+  //     2. If yes, the current phase (First, Second, Third).
+  //     3. Approximate remaining duration in years.
+  //     4. If not under Sade Sati, approximate years until next occurrence.
 
-      Return JSON in this format:
-      {
-        "isUnderSadeSati": boolean,
-        "phase": "First Phase" | "Second Phase" | "Third Phase" | null,
-        "durationYears": number | null,
-        "upcomingYears": number | null
-      }
-    `;
+  //     Return JSON in this format:
+  //     {
+  //       "isUnderSadeSati": boolean,
+  //       "phase": "First Phase" | "Second Phase" | "Third Phase" | null,
+  //       "durationYears": number | null,
+  //       "upcomingYears": number | null
+  //     }
+  //   `;
 
-      const response = await client.chat.completions.create({
-        model: "gpt-4o-mini",
-        messages: [{ role: "user", content: prompt }],
-        temperature: 0,
-      });
+  //     const response = await client.chat.completions.create({
+  //       model: "gpt-4o-mini",
+  //       messages: [{ role: "user", content: prompt }],
+  //       temperature: 0,
+  //     });
 
-      const rawContent = response.choices[0]?.message?.content ?? "{}";
-      const cleaned = rawContent.replace(/```json|```/g, "").trim();
-      const { isUnderSadeSati, phase, durationYears, upcomingYears } =
-        JSON.parse(cleaned);
+  //     const rawContent = response.choices[0]?.message?.content ?? "{}";
+  //     const cleaned = rawContent.replace(/```json|```/g, "").trim();
+  //     const { isUnderSadeSati, phase, durationYears, upcomingYears } =
+  //       JSON.parse(cleaned);
 
-      const cardStyle: React.CSSProperties = {
-        background: "#f5f3ff",
-        padding: "24px",
-        borderRadius: "16px",
-        color: "#2d3748",
-        fontFamily: "Arial, sans-serif",
-        lineHeight: 1.6,
-        fontSize: "15px",
-      };
+  //     const cardStyle: React.CSSProperties = {
+  //       background: "#f5f3ff",
+  //       padding: "24px",
+  //       borderRadius: "16px",
+  //       color: "#2d3748",
+  //       fontFamily: "Arial, sans-serif",
+  //       lineHeight: 1.6,
+  //       fontSize: "15px",
+  //     };
 
-      const headingStyle: React.CSSProperties = {
-        fontSize: "18px",
-        fontWeight: 700,
-        marginBottom: "16px",
-      };
+  //     const headingStyle: React.CSSProperties = {
+  //       fontSize: "18px",
+  //       fontWeight: 700,
+  //       marginBottom: "16px",
+  //     };
 
-      const sectionTitleStyle: React.CSSProperties = {
-        fontWeight: 600,
-        color: "#4b0082",
-        marginTop: "20px",
-        marginBottom: "8px",
-        fontSize: "16px",
-      };
+  //     const sectionTitleStyle: React.CSSProperties = {
+  //       fontWeight: 600,
+  //       color: "#4b0082",
+  //       marginTop: "20px",
+  //       marginBottom: "8px",
+  //       fontSize: "16px",
+  //     };
 
-      const paragraphStyle: React.CSSProperties = {
-        margin: "8px 0",
-      };
+  //     const paragraphStyle: React.CSSProperties = {
+  //       margin: "8px 0",
+  //     };
 
-      const listStyle: React.CSSProperties = {
-        marginLeft: "20px",
-        paddingLeft: "0",
-      };
+  //     const listStyle: React.CSSProperties = {
+  //       marginLeft: "20px",
+  //       paddingLeft: "0",
+  //     };
 
-      const renderPhaseDetails = () => {
-        switch (phase) {
-          case "First Phase":
-            return (
-              <>
-                <li>
-                  Saturn in 12th from Moon – emotional stress, isolation
-                  tendencies
-                </li>
-                <li>Possible relocation or change in residence</li>
-                <li>Health of elders may need attention</li>
-              </>
-            );
-          case "Second Phase":
-            return (
-              <>
-                <li>Saturn over Moon – peak karmic challenges</li>
-                <li>High emotional and mental strain</li>
-                <li>Career obstacles and financial slowdowns</li>
-                <li>Tests of patience and emotional endurance</li>
-              </>
-            );
-          case "Third Phase":
-            return (
-              <>
-                <li>Saturn in 2nd from Moon – financial restructuring</li>
-                <li>Gradual end of karmic challenges</li>
-                <li>Improved family stability and emotional clarity</li>
-              </>
-            );
-          default:
-            return null;
-        }
-      };
+  //     const renderPhaseDetails = () => {
+  //       switch (phase) {
+  //         case "First Phase":
+  //           return (
+  //             <>
+  //               <li>
+  //                 Saturn in 12th from Moon – emotional stress, isolation
+  //                 tendencies
+  //               </li>
+  //               <li>Possible relocation or change in residence</li>
+  //               <li>Health of elders may need attention</li>
+  //             </>
+  //           );
+  //         case "Second Phase":
+  //           return (
+  //             <>
+  //               <li>Saturn over Moon – peak karmic challenges</li>
+  //               <li>High emotional and mental strain</li>
+  //               <li>Career obstacles and financial slowdowns</li>
+  //               <li>Tests of patience and emotional endurance</li>
+  //             </>
+  //           );
+  //         case "Third Phase":
+  //           return (
+  //             <>
+  //               <li>Saturn in 2nd from Moon – financial restructuring</li>
+  //               <li>Gradual end of karmic challenges</li>
+  //               <li>Improved family stability and emotional clarity</li>
+  //             </>
+  //           );
+  //         default:
+  //           return null;
+  //       }
+  //     };
 
-      if (isUnderSadeSati) {
+  //     if (isUnderSadeSati) {
+  //       return (
+  //         <div style={cardStyle}>
+  //           <div style={headingStyle}>
+  //             🪔 Shani Sade Sati Report for {data.name}
+  //           </div>
+  //           <p style={paragraphStyle}>
+  //             📅 <strong>Date:</strong> {data.dateOfBirth}
+  //           </p>
+  //           <p style={paragraphStyle}>
+  //             ⏰ <strong>Time:</strong> {data.timeOfBirth}
+  //           </p>
+  //           <p style={paragraphStyle}>
+  //             📍 <strong>Place:</strong> {data.placeOfBirth}
+  //           </p>
+
+  //           <div style={sectionTitleStyle}>📉 Status:</div>
+  //           <p style={paragraphStyle}>
+  //             You are currently experiencing <strong>Shani Sade Sati</strong>.
+  //           </p>
+
+  //           <div style={sectionTitleStyle}>🔄 Current Phase:</div>
+  //           <p style={paragraphStyle}>
+  //             <strong>{phase}</strong>
+  //           </p>
+
+  //           <div style={sectionTitleStyle}>📌 Phase-Specific Effects:</div>
+  //           <ul style={listStyle}>{renderPhaseDetails()}</ul>
+
+  //           <p style={paragraphStyle}>
+  //             🕒 <strong>Duration:</strong> Approx. {durationYears} more years
+  //           </p>
+  //         </div>
+  //       );
+  //     } else {
+  //       return (
+  //         <div style={cardStyle}>
+  //           <div style={headingStyle}>
+  //             🪔 Shani Sade Sati Report for {data.name}
+  //           </div>
+  //           <p style={paragraphStyle}>
+  //             📅 <strong>Date:</strong> {data.dateOfBirth}
+  //           </p>
+  //           <p style={paragraphStyle}>
+  //             ⏰ <strong>Time:</strong> {data.timeOfBirth}
+  //           </p>
+  //           <p style={paragraphStyle}>
+  //             📍 <strong>Place:</strong> {data.placeOfBirth}
+  //           </p>
+
+  //           <div style={sectionTitleStyle}>✅ Result:</div>
+  //           <p style={paragraphStyle}>
+  //             You are <strong>not currently under</strong> Shani Sade Sati.
+  //           </p>
+
+  //           <p style={paragraphStyle}>
+  //             🔮 <strong>Next Sade Sati may begin in:</strong> {upcomingYears}{" "}
+  //             years
+  //           </p>
+  //         </div>
+  //       );
+  //     }
+  //   } catch (error) {
+  //     console.error("Error generating Sade Sati report:", error);
+  //     return <p>⚠️ Could not generate report. Please try again later.</p>;
+  //   }
+  // };
+
+  const generateShaniSadeReport = async (data: typeof formData): Promise<JSX.Element> => {
+  // Simulate loading
+  await new Promise((resolve) => setTimeout(resolve, 2000));
+
+  // Call your AI function to get real Sade Sati details
+  const response = await fetch("/api/sade-sati", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+  const result = await response.json();
+
+  const { isUnderSadeSati, phase, durationYears, upcomingYears } = result;
+
+  const cardStyle: React.CSSProperties = {
+    background: "#f5f3ff",
+    padding: "24px",
+    borderRadius: "16px",
+    color: "#2d3748",
+    fontFamily: "Arial, sans-serif",
+    lineHeight: 1.6,
+    fontSize: "15px",
+  };
+
+  const headingStyle: React.CSSProperties = {
+    fontSize: "18px",
+    fontWeight: 700,
+    marginBottom: "16px",
+  };
+
+  const sectionTitleStyle: React.CSSProperties = {
+    fontWeight: 600,
+    color: "#4b0082",
+    marginTop: "20px",
+    marginBottom: "8px",
+    fontSize: "16px",
+  };
+
+  const paragraphStyle: React.CSSProperties = { margin: "8px 0" };
+
+  const listStyle: React.CSSProperties = { marginLeft: "20px", paddingLeft: "0" };
+
+  const renderPhaseDetails = () => {
+    switch (phase) {
+      case "First Phase":
         return (
-          <div style={cardStyle}>
-            <div style={headingStyle}>
-              🪔 Shani Sade Sati Report for {data.name}
-            </div>
-            <p style={paragraphStyle}>
-              📅 <strong>Date:</strong> {data.dateOfBirth}
-            </p>
-            <p style={paragraphStyle}>
-              ⏰ <strong>Time:</strong> {data.timeOfBirth}
-            </p>
-            <p style={paragraphStyle}>
-              📍 <strong>Place:</strong> {data.placeOfBirth}
-            </p>
-
-            <div style={sectionTitleStyle}>📉 Status:</div>
-            <p style={paragraphStyle}>
-              You are currently experiencing <strong>Shani Sade Sati</strong>.
-            </p>
-
-            <div style={sectionTitleStyle}>🔄 Current Phase:</div>
-            <p style={paragraphStyle}>
-              <strong>{phase}</strong>
-            </p>
-
-            <div style={sectionTitleStyle}>📌 Phase-Specific Effects:</div>
-            <ul style={listStyle}>{renderPhaseDetails()}</ul>
-
-            <p style={paragraphStyle}>
-              🕒 <strong>Duration:</strong> Approx. {durationYears} more years
-            </p>
-          </div>
+          <>
+            <li>Saturn in the 12th house from Moon – focus on endings and detachment</li>
+            <li>Possible expenses, travel, or isolation</li>
+            <li>Time for deep introspection and spiritual work</li>
+          </>
         );
-      } else {
+      case "Second Phase":
         return (
-          <div style={cardStyle}>
-            <div style={headingStyle}>
-              🪔 Shani Sade Sati Report for {data.name}
-            </div>
-            <p style={paragraphStyle}>
-              📅 <strong>Date:</strong> {data.dateOfBirth}
-            </p>
-            <p style={paragraphStyle}>
-              ⏰ <strong>Time:</strong> {data.timeOfBirth}
-            </p>
-            <p style={paragraphStyle}>
-              📍 <strong>Place:</strong> {data.placeOfBirth}
-            </p>
-
-            <div style={sectionTitleStyle}>✅ Result:</div>
-            <p style={paragraphStyle}>
-              You are <strong>not currently under</strong> Shani Sade Sati.
-            </p>
-
-            <p style={paragraphStyle}>
-              🔮 <strong>Next Sade Sati may begin in:</strong> {upcomingYears}{" "}
-              years
-            </p>
-          </div>
+          <>
+            <li>Saturn on Moon – emotional heaviness and life restructuring</li>
+            <li>Major karmic lessons and challenges</li>
+            <li>Health and personal responsibility become key</li>
+          </>
         );
-      }
-    } catch (error) {
-      console.error("Error generating Sade Sati report:", error);
-      return <p>⚠️ Could not generate report. Please try again later.</p>;
+      case "Third Phase":
+        return (
+          <>
+            <li>Saturn in 2nd house from Moon – family and finance focus</li>
+            <li>Possible restrictions in wealth accumulation</li>
+            <li>Time to settle karmic debts and prepare for a fresh cycle</li>
+          </>
+        );
+      default:
+        return null;
     }
   };
+
+  if (isUnderSadeSati) {
+    return (
+      <div style={cardStyle}>
+        <div style={headingStyle}>🪔 Shani Sade Sathi Report for {data.name}</div>
+
+        <p style={paragraphStyle}>📅 <strong>Date:</strong> {data.dateOfBirth}</p>
+        <p style={paragraphStyle}>⏰ <strong>Time:</strong> {data.timeOfBirth}</p>
+        <p style={paragraphStyle}>📍 <strong>Place:</strong> {data.placeOfBirth}</p>
+
+        <div style={sectionTitleStyle}>📉 Status:</div>
+        <p style={paragraphStyle}>
+          You are currently experiencing <strong>Shani Sade Sathi</strong>.
+        </p>
+
+        <div style={sectionTitleStyle}>🔄 Current Phase:</div>
+        <p style={paragraphStyle}><strong>{phase}</strong></p>
+
+        <div style={sectionTitleStyle}>📌 Phase-Specific Effects:</div>
+        <ul style={listStyle}>{renderPhaseDetails()}</ul>
+
+        <div style={sectionTitleStyle}>🛠️ Remedies:</div>
+        <ul style={listStyle}>
+          <li>Chant Hanuman Chalisa or Shani mantra on Saturdays</li>
+          <li>Donate black items and sesame seeds</li>
+          <li>Serve the poor and elderly</li>
+          <li>Practice humility and patience</li>
+        </ul>
+
+        <p style={paragraphStyle}>
+          🕒 <strong>Remaining Duration:</strong> Approx. {durationYears} years
+        </p>
+      </div>
+    );
+  } else {
+    return (
+      <div style={cardStyle}>
+        <div style={headingStyle}>🪔 Shani Sade Sathi Report for {data.name}</div>
+
+        <p style={paragraphStyle}>📅 <strong>Date:</strong> {data.dateOfBirth}</p>
+        <p style={paragraphStyle}>⏰ <strong>Time:</strong> {data.timeOfBirth}</p>
+        <p style={paragraphStyle}>📍 <strong>Place:</strong> {data.placeOfBirth}</p>
+
+        <div style={sectionTitleStyle}>✅ Result:</div>
+        <p style={paragraphStyle}>
+          You are <strong>not currently under</strong> Shani Sade Sathi.
+        </p>
+
+        <p style={paragraphStyle}>
+          🔮 <strong>Next Sade Sathi may begin in:</strong> {upcomingYears} years
+        </p>
+      </div>
+    );
+  }
+};
 
   const FaqSection = () => {
     const faqs = [
