@@ -1,7 +1,8 @@
 import React, { useState } from "react";
 import { useLanguage } from "../contexts/LanguageContext";
 import Navbar from "../components/Navbar";
-import { Heart, Loader2, Download } from "lucide-react";
+import { Heart, Loader2 } from "lucide-react";
+import OpenAI from "openai"; // Install: npm install openai
 
 const MangalDosh: React.FC = () => {
   const [formData, setFormData] = useState({
@@ -11,19 +12,67 @@ const MangalDosh: React.FC = () => {
     timeOfBirth: "",
     placeOfBirth: "",
   });
-  const [result, setResult] = useState("");
+  const [result, setResult] = useState<JSX.Element | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
   const { t } = useLanguage();
 
-  const generateMangalDoshReport = async (
-    data: typeof formData
-  ): Promise<JSX.Element> => {
-    await new Promise((resolve) => setTimeout(resolve, 2000));
+  const generateMangalDoshReport = async (data: typeof formData) => {
+    const openai = new OpenAI({
+      apiKey: "sk-xyz", // replace with your real key or import.meta.env.VITE_OPENAI_API_KEY
+      dangerouslyAllowBrowser: true, // for client-side usage
+    });
 
-    const hasMangalDosh = Math.random() > 0.5;
+    const prompt = `
+You are a Vedic astrologer. 
+Given the following birth details, check if the person has Mangal Dosh.
+Return only valid JSON in the format:
+{
+  "isManglik": true/false,
+  "description": "detailed explanation"
+}
 
+Full Name: ${data.name}
+Gender: ${data.gender}
+Date of Birth: ${data.dateOfBirth}
+Time of Birth: ${data.timeOfBirth}
+Place of Birth: ${data.placeOfBirth}
+  `;
+
+    let isManglik: boolean | null = null;
+    let description = "";
+
+    try {
+      const completion = await openai.chat.completions.create({
+        model: "gpt-4o-mini",
+        messages: [{ role: "user", content: prompt }],
+        temperature: 0.2,
+      });
+
+      // Extract content from OpenAI-like response
+      let content = completion.choices?.[0]?.message?.content?.trim() || "";
+
+      // Step 1: Remove the triple backticks and optional language tag (```json)
+      content = content.replace(/```json|```/g, "").trim();
+
+      // Try to parse JSON directly
+      try {
+        const parsed = JSON.parse(content);
+        isManglik = parsed.isManglik ?? null;
+        description = parsed.description ?? "";
+      } catch {
+        // If parsing fails, fall back to plain text
+        isManglik = null;
+        description = content;
+      }
+    } catch (err) {
+      console.error("Error generating report:", err);
+      isManglik = null;
+      description = "Could not generate report.";
+    }
+
+    // Styles
     const cardStyle: React.CSSProperties = {
       background: "#f5f3ff",
       padding: "24px",
@@ -33,13 +82,18 @@ const MangalDosh: React.FC = () => {
       lineHeight: 1.6,
       fontSize: "15px",
     };
-
     const headingStyle: React.CSSProperties = {
       fontSize: "18px",
       fontWeight: 700,
       marginBottom: "16px",
     };
-
+    const paragraphStyle: React.CSSProperties = {
+      margin: "8px 0",
+    };
+    const listStyle: React.CSSProperties = {
+      marginLeft: "20px",
+      paddingLeft: "0",
+    };
     const sectionTitleStyle: React.CSSProperties = {
       fontWeight: 600,
       color: "#4b0082",
@@ -48,36 +102,11 @@ const MangalDosh: React.FC = () => {
       fontSize: "16px",
     };
 
-    const paragraphStyle: React.CSSProperties = {
-      margin: "8px 0",
-    };
-
-    const listStyle: React.CSSProperties = {
-      marginLeft: "20px",
-      paddingLeft: "0",
-    };
-
-    if (hasMangalDosh) {
+    if (isManglik === true) {
       return (
         <div style={cardStyle}>
           <div style={headingStyle}>🪔 Mangal Dosh Report for {data.name}</div>
-
-          <p style={paragraphStyle}>
-            📅 <strong>Date:</strong> {data.dateOfBirth}
-          </p>
-          <p style={paragraphStyle}>
-            ⏰ <strong>Time:</strong> {data.timeOfBirth}
-          </p>
-          <p style={paragraphStyle}>
-            📍 <strong>Place:</strong> {data.placeOfBirth}
-          </p>
-
-          <p style={paragraphStyle}>
-            Your chart indicates <strong>Mangal Dosh</strong>. This astrological
-            condition is created by Mars being in a sensitive position, which
-            may influence marriage and relationships.
-          </p>
-
+          <p style={paragraphStyle}>{description}</p>
           <div style={sectionTitleStyle}>⚠️ Effects:</div>
           <ul style={listStyle}>
             <li>Delays in marriage</li>
@@ -85,7 +114,6 @@ const MangalDosh: React.FC = () => {
             <li>Need for careful partner selection</li>
             <li>Importance of compatibility matching</li>
           </ul>
-
           <div style={sectionTitleStyle}>🛠️ Remedies:</div>
           <ul style={listStyle}>
             <li>Recite Hanuman Chalisa daily</li>
@@ -94,68 +122,32 @@ const MangalDosh: React.FC = () => {
             <li>Wear red coral gemstone (with consultation)</li>
             <li>Perform Mangal Shanti Puja</li>
           </ul>
-
-          <div style={sectionTitleStyle}>💍 Compatibility Tips:</div>
-          <p style={paragraphStyle}>
-            It’s recommended to marry another Manglik or perform remedies before
-            marriage for harmony.
-          </p>
-
-          <p style={{ ...paragraphStyle, fontStyle: "italic", color: "#555" }}>
-            Note: This is a general report. Please consult a qualified
-            astrologer for personal guidance.
-          </p>
         </div>
       );
-    } else {
+    } else if (isManglik === false) {
       return (
         <div style={cardStyle}>
           <div style={headingStyle}>🪔 Mangal Dosh Report for {data.name}</div>
-
-          <p style={paragraphStyle}>
-            📅 <strong>Date:</strong> {data.dateOfBirth}
-          </p>
-          <p style={paragraphStyle}>
-            ⏰ <strong>Time:</strong> {data.timeOfBirth}
-          </p>
-          <p style={paragraphStyle}>
-            📍 <strong>Place:</strong> {data.placeOfBirth}
-          </p>
-
-          <p style={paragraphStyle}>
-            Good news! Your chart shows <strong>no Mangal Dosh</strong>. Mars is
-            well-placed, supporting balanced relationships.
-          </p>
-
+          <p style={paragraphStyle}>{description}</p>
           <div style={sectionTitleStyle}>🌟 Benefits:</div>
           <ul style={listStyle}>
             <li>Smooth marriage prospects</li>
             <li>Harmonious relationships</li>
             <li>Good compatibility with partners</li>
-            <li>Positive influence of Mars energy</li>
           </ul>
-
-          <div style={sectionTitleStyle}>🧘 Recommendations:</div>
-          <ul style={listStyle}>
-            <li>Continue regular prayers and spiritual practices</li>
-            <li>Maintain positive relationships</li>
-            <li>Support others with Mangal Dosh</li>
-          </ul>
-
-          <div style={sectionTitleStyle}>💍 Marriage Compatibility:</div>
-          <p style={paragraphStyle}>
-            You can marry both Manglik and non-Manglik individuals without
-            concerns.
-          </p>
-
-          <p style={{ ...paragraphStyle, fontStyle: "italic", color: "#555" }}>
-            Note: This is a general report. For deeper insights, consult a
-            professional astrologer.
-          </p>
+        </div>
+      );
+    } else {
+      // Unknown / parsing error
+      return (
+        <div style={cardStyle}>
+          <div style={headingStyle}>🪔 Mangal Dosh Report for {data.name}</div>
+          <p style={paragraphStyle}>{description}</p>
         </div>
       );
     }
   };
+
   const FaqSection = () => {
     const faqs = [
       {
@@ -179,12 +171,12 @@ const MangalDosh: React.FC = () => {
           "Yes, Mangal Dosh can create delays, compatibility issues, or conflicts in marriage. However, proper matching with suitable partners and appropriate remedies help ensure successful relationships. Moreover, understanding your dosha helps you prepare better for married life challenges.",
       },
     ];
-  
+
     const containerStyle: React.CSSProperties = {
       marginTop: "32px",
       fontFamily: "Arial, sans-serif",
     };
-  
+
     const faqBoxStyle: React.CSSProperties = {
       background: "#fff7ec",
       borderLeft: "4px solid #ec6608",
@@ -193,23 +185,31 @@ const MangalDosh: React.FC = () => {
       marginBottom: "16px",
       boxShadow: "0 2px 6px rgba(0,0,0,0.05)",
     };
-  
+
     const questionStyle: React.CSSProperties = {
       fontWeight: 700,
       marginBottom: "6px",
       fontSize: "16px",
       color: "#2d3748",
     };
-  
+
     const answerStyle: React.CSSProperties = {
       fontSize: "14px",
       color: "#4a5568",
       lineHeight: 1.6,
     };
-  
+
     return (
-      <div className='container' style={containerStyle}>
-        <h2 style={{ borderBottom: "3px solid #a084e8", paddingBottom: "8px", marginBottom: "20px", fontSize: "20px", color: "#2d2d2d" }}>
+      <div className="container" style={containerStyle}>
+        <h2
+          style={{
+            borderBottom: "3px solid #a084e8",
+            paddingBottom: "8px",
+            marginBottom: "20px",
+            fontSize: "20px",
+            color: "#2d2d2d",
+          }}
+        >
           FAQs
         </h2>
         {faqs.map((faq, index) => (
@@ -221,8 +221,7 @@ const MangalDosh: React.FC = () => {
       </div>
     );
   };
-  
-    
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
@@ -244,6 +243,7 @@ const MangalDosh: React.FC = () => {
       setResult(report);
     } catch (err) {
       setError("Error generating report. Please try again.");
+      console.error("Error generating report:", err);
     } finally {
       setLoading(false);
     }
@@ -491,7 +491,6 @@ const MangalDosh: React.FC = () => {
                 </div>
               )}
             </div>
-
           </div>
 
           {/* {result && (
@@ -504,7 +503,6 @@ const MangalDosh: React.FC = () => {
           )} */}
         </div>
         <FaqSection />
-
       </div>
     </>
   );
