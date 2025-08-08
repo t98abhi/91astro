@@ -20,7 +20,7 @@ const MangalDosh: React.FC = () => {
 
   const generateMangalDoshReport = async (data: typeof formData) => {
     const openai = new OpenAI({
-      apiKey: "sk-xyz", // replace with your real key or import.meta.env.VITE_OPENAI_API_KEY
+      apiKey: import.meta.env.VITE_OPENAI_API_KEY, // replace with your real key or import.meta.env.VITE_OPENAI_API_KEY
       dangerouslyAllowBrowser: true, // for client-side usage
     });
 
